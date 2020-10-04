@@ -16,7 +16,7 @@ repositories {
 }
 
 def GROUP_ID="com.darkosinc.mvu"
-def ARTIFACT_ID="validation-api"
+def ARTIFACT_ID="validation-reducer"
 
 def BINTRAY_REPOSITORY="MVU"
 def BINTRAY_ORGINIZATION="darkosinc"
