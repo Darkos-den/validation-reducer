@@ -12,7 +12,6 @@ import kotlin.reflect.KClass
 
 internal class WithValidationReducer<T : MVUState>(
     val fieldId: Long,
-    val valueChangedMessage: KClass<out ValidationMessage.FieldValueChanged>,
     val map: (T) -> Field
 ) : Reducer<Field> {
 

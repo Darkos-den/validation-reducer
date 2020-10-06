@@ -7,7 +7,6 @@ import com.darkos.mvu.models.*
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
-import kotlin.reflect.KClass
 
 class ValidationReducer<T : MVUState> private constructor(
     private val withValidationProcessors: List<WithValidationReducer<T>>,
@@ -45,9 +44,9 @@ class ValidationReducer<T : MVUState> private constructor(
                     effect = errorEffect ?: None()
                 )
             }
-            else -> {
+            is ValidationMessage.FieldValueChanged -> {
                 withValidationProcessors.firstOrNull {
-                    it.valueChangedMessage.isInstance(message)
+                    it.fieldId == message.fieldId
                 }?.let { reducer ->
                     reducer.update(
                         state = state.fields.first { it.id == reducer.fieldId },
@@ -59,6 +58,7 @@ class ValidationReducer<T : MVUState> private constructor(
                     }
                 } ?: throw IllegalArgumentException()
             }
+            else -> throw IllegalArgumentException()
         }
     }
 
@@ -73,11 +73,10 @@ class ValidationReducer<T : MVUState> private constructor(
 
         fun registerField(
             fieldId: Long,
-            valueChangedMessage: KClass<out ValidationMessage.FieldValueChanged>,
             map: (T) -> Field
         ) {
             processors = processors + WithValidationReducer(
-                fieldId, valueChangedMessage, map
+                fieldId, map
             )
         }
 
