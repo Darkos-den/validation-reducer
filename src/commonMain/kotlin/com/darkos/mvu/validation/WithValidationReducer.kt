@@ -24,7 +24,7 @@ internal class WithValidationReducer<T : MVUState>(
                 value = (message as ValidationMessage.FieldValueChanged).newValue,
                 status = FieldValidationStatus.VALID
             ),
-            effect = None()
+            effect = None
         )
     }
 }

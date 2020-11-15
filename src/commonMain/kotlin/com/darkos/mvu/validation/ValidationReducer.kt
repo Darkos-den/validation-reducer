@@ -2,7 +2,7 @@ package com.darkos.mvu.validation
 
 import com.darkos.mvu.validation.model.ValidationState
 import com.darkos.mvu.Reducer
-import com.darkos.mvu.map
+import com.darkos.mvu.common.map
 import com.darkos.mvu.models.*
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
@@ -41,7 +41,7 @@ class ValidationReducer<T : MVUState> private constructor(
 
                 StateCmdData(
                     state = ValidationState(fields),
-                    effect = errorEffect ?: None()
+                    effect = errorEffect ?: None
                 )
             }
             is ValidationMessage.FieldValueChanged -> {
