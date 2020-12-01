@@ -1,14 +1,13 @@
 package com.darkos.mvu.validation
 
 import com.darkos.mvu.Reducer
-import com.darkos.mvu.models.MVUState
-import com.darkos.mvu.models.Message
-import com.darkos.mvu.models.None
-import com.darkos.mvu.models.StateCmdData
+import com.darkos.mvu.model.MVUState
+import com.darkos.mvu.model.Message
+import com.darkos.mvu.model.None
+import com.darkos.mvu.model.StateCmdData
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.FieldValidationStatus
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
-import kotlin.reflect.KClass
 
 internal class WithValidationReducer<T : MVUState>(
     val fieldId: Long,

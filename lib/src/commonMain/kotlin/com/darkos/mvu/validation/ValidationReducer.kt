@@ -3,7 +3,7 @@ package com.darkos.mvu.validation
 import com.darkos.mvu.validation.model.ValidationState
 import com.darkos.mvu.Reducer
 import com.darkos.mvu.common.map
-import com.darkos.mvu.models.*
+import com.darkos.mvu.model.*
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
@@ -62,12 +62,13 @@ class ValidationReducer<T : MVUState> private constructor(
         }
     }
 
+    @ValidationDsl
     class Builder<T : MVUState> {
         private var processors: List<WithValidationReducer<T>> = emptyList()
         var errorEffect: Effect? = null
         private var mapper: ((T, ValidationState) -> T)? = null
 
-        fun RegisterValidationMapper(block: (T, ValidationState) -> T) {
+        fun registerValidationMapper(block: (T, ValidationState) -> T) {
             mapper = block
         }
 

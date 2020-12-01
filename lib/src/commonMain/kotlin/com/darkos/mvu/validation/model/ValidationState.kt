@@ -1,7 +1,6 @@
 package com.darkos.mvu.validation.model
 
-import com.darkos.mvu.models.MVUState
-import com.darkos.mvu.validation.model.Field
+import com.darkos.mvu.model.MVUState
 
 data class ValidationState(
     val fields: List<Field>
