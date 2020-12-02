@@ -67,6 +67,12 @@ kotlin {
                 implementation("com.darkosinc.validation:api:0.0.2")
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
         val androidMain by getting
         val iosMain by getting
         val iosArm64Main by getting {

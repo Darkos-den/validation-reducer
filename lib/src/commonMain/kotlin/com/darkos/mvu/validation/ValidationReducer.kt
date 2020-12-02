@@ -6,25 +6,25 @@ import com.darkos.mvu.common.map
 import com.darkos.mvu.model.*
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.FieldValidationStatus
+import com.darkos.mvu.validation.model.ValidationFieldType
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
 
-class ValidationReducer<T : MVUState> private constructor(
-    private val withValidationProcessors: List<WithValidationReducer<T>>,
-    val mapper: (T, ValidationState) -> T,
+class ValidationReducer<T : MVUState> internal constructor(
+    private val mapperTo: (T, ValidationState) -> T,
+    private val mapperFrom: (T)->ValidationState,
     private val errorEffect: Effect?
 ) : Reducer<ValidationState> {
 
-    fun map(state: T): ValidationState {
-        return ValidationState(
-            fields = withValidationProcessors.map {
-                it.map(state)
-            }.map {
-                it.id to it
-            }.let {
-                mapOf(*it.toTypedArray())
-            }
-        )
+    fun callUpdate(
+        state: T,
+        message: Message
+    ): StateCmdData<T> {
+        return mapperFrom(state).let {
+            update(it, message)
+        }.map {
+            mapperTo(state, it)
+        }
     }
 
     override fun update(
@@ -57,27 +57,26 @@ class ValidationReducer<T : MVUState> private constructor(
 
     @ValidationDsl
     class Builder<T : MVUState> {
-        private var processors: List<WithValidationReducer<T>> = emptyList()
         var errorEffect: Effect? = null
-        private var mapper: ((T, ValidationState) -> T)? = null
+        private var mapperTo: ((T, ValidationState) -> T)? = null
+        private var mapperFrom: ((T) -> ValidationState)? = null
 
-        fun registerValidationMapper(block: (T, ValidationState) -> T) {
-            mapper = block
+        fun registerMapperTo(block: (T, ValidationState) -> T) {
+            mapperTo = block
         }
 
-        fun registerField(
-            fieldId: Long,
-            map: (T) -> Field
-        ) {
-            processors = processors + WithValidationReducer(
-                fieldId, map
-            )
+        fun registerMapperFrom(block: (T) -> ValidationState) {
+            mapperFrom = block
         }
 
         fun build() = ValidationReducer(
-            withValidationProcessors = processors,
-            mapper = mapper!!,
+            mapperTo = mapperTo!!,
+            mapperFrom = mapperFrom!!,
             errorEffect = errorEffect
         )
     }
 }
+
+@ValidationDsl
+fun <T: MVUState>ValidationReducer(block: ValidationReducer.Builder<T>.() -> Unit) =
+    ValidationReducer.Builder<T>().apply(block).build()
