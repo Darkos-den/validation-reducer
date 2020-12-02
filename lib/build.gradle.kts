@@ -45,7 +45,7 @@ android {
 
 dependencies {
     implementation("com.darkosinc.MVU:core-android:0.0.5")
-    implementation("com.darkosinc.validation:api-android:0.0.1")
+    implementation("com.darkosinc.validation:api-android:0.0.2")
 }
 
 kotlin {
@@ -64,7 +64,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
                 implementation("com.darkosinc.MVU:core:0.0.5")
-                implementation("com.darkosinc.validation:api:0.0.1")
+                implementation("com.darkosinc.validation:api:0.0.2")
             }
         }
         val androidMain by getting
@@ -72,13 +72,13 @@ kotlin {
         val iosArm64Main by getting {
             dependencies {
                 implementation("com.darkosinc.MVU:core-iosArm64:0.0.5")
-                implementation("com.darkosinc.validation:api-iosArm64:0.0.1")
+                implementation("com.darkosinc.validation:api-iosArm64:0.0.2")
             }
         }
         val iosX64Main by getting {
             dependencies {
                 implementation("com.darkosinc.MVU:core-iosX64:0.0.5")
-                implementation("com.darkosinc.validation:api-iosX64:0.0.1")
+                implementation("com.darkosinc.validation:api-iosX64:0.0.2")
             }
         }
     }

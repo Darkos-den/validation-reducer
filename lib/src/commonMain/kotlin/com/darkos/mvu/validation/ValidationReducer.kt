@@ -5,6 +5,7 @@ import com.darkos.mvu.Reducer
 import com.darkos.mvu.common.map
 import com.darkos.mvu.model.*
 import com.darkos.mvu.validation.model.Field
+import com.darkos.mvu.validation.model.FieldValidationStatus
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
 
@@ -18,6 +19,10 @@ class ValidationReducer<T : MVUState> private constructor(
         return ValidationState(
             fields = withValidationProcessors.map {
                 it.map(state)
+            }.map {
+                it.id to it
+            }.let {
+                mapOf(*it.toTypedArray())
             }
         )
     }
@@ -27,36 +32,24 @@ class ValidationReducer<T : MVUState> private constructor(
         message: Message
     ): StateCmdData<ValidationState> {
         return when (message) {
-            is ValidationMessage.ValidationClick -> {
+            is ValidationMessage.Triggered -> {
                 StateCmdData(
                     state = state,
-                    effect = ValidationEffect.Validate(state.fields)
+                    effect = ValidationEffect.Validate(state.fields.values.toList())
                 )
             }
             is ValidationMessage.Error -> {
-                var fields = state.fields
-                message.wrongFields.forEach {
-                    fields = fields.replaceById(it.id, it)
+                val map = HashMap(state.fields)
+                message.wrongFields.forEach { wrongId ->
+                    map[wrongId]?.let {
+                        map[wrongId] = it.copy(status = FieldValidationStatus.INVALID)
+                    }
                 }
 
                 StateCmdData(
-                    state = ValidationState(fields),
+                    state = state.copy(fields = map),
                     effect = errorEffect ?: None
                 )
-            }
-            is ValidationMessage.FieldValueChanged -> {
-                withValidationProcessors.firstOrNull {
-                    it.fieldId == message.fieldId
-                }?.let { reducer ->
-                    reducer.update(
-                        state = state.fields.first { it.id == reducer.fieldId },
-                        message = message
-                    ).map {
-                        state.copy(
-                            fields = state.fields.replaceById(it.id, it)
-                        )
-                    }
-                } ?: throw IllegalArgumentException()
             }
             else -> throw IllegalArgumentException()
         }
