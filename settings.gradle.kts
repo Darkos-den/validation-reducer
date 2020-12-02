@@ -10,5 +10,5 @@ rootProject.name = "validation-reducer"
 
 enableFeaturePreview("GRADLE_METADATA")
 
-include(":lib")
+include(":reducer")
 

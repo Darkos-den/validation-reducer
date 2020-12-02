@@ -71,6 +71,9 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+
+                implementation("com.darkosinc.MVU:core:0.0.5")
+                implementation("com.darkosinc.validation:api:0.0.2")
             }
         }
         val androidMain by getting
@@ -81,11 +84,17 @@ kotlin {
                 implementation("com.darkosinc.validation:api-iosArm64:0.0.2")
             }
         }
+        val iosArm64Test by getting {
+            dependsOn(iosArm64Main)
+        }
         val iosX64Main by getting {
             dependencies {
                 implementation("com.darkosinc.MVU:core-iosX64:0.0.5")
                 implementation("com.darkosinc.validation:api-iosX64:0.0.2")
             }
+        }
+        val iosX64Test by getting {
+            dependsOn(iosX64Main)
         }
     }
 }
