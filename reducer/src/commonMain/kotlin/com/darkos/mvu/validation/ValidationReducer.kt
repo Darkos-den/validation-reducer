@@ -4,16 +4,14 @@ import com.darkos.mvu.validation.model.ValidationState
 import com.darkos.mvu.Reducer
 import com.darkos.mvu.common.map
 import com.darkos.mvu.model.*
-import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.FieldValidationStatus
-import com.darkos.mvu.validation.model.ValidationFieldType
 import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
 
 class ValidationReducer<T : MVUState> internal constructor(
     private val mapperTo: (T, ValidationState) -> T,
     private val mapperFrom: (T)->ValidationState,
-    private val errorEffect: Effect?
+    private val errorEffectBuilder: (()->Effect)?
 ) : Reducer<ValidationState> {
 
     fun callUpdate(
@@ -48,7 +46,7 @@ class ValidationReducer<T : MVUState> internal constructor(
 
                 StateCmdData(
                     state = state.copy(fields = map),
-                    effect = errorEffect ?: None
+                    effect = errorEffectBuilder?.invoke() ?: None
                 )
             }
             else -> throw IllegalArgumentException()
@@ -57,7 +55,7 @@ class ValidationReducer<T : MVUState> internal constructor(
 
     @ValidationDsl
     class Builder<T : MVUState> {
-        var errorEffect: Effect? = null
+        private var errorEffectBuilder: (()->Effect)? = null
         private var mapperTo: ((T, ValidationState) -> T)? = null
         private var mapperFrom: ((T) -> ValidationState)? = null
 
@@ -69,10 +67,14 @@ class ValidationReducer<T : MVUState> internal constructor(
             mapperFrom = block
         }
 
+        fun errorEffect(block: ()->Effect){
+            errorEffectBuilder = block
+        }
+
         fun build() = ValidationReducer(
             mapperTo = mapperTo!!,
             mapperFrom = mapperFrom!!,
-            errorEffect = errorEffect
+            errorEffectBuilder = errorEffectBuilder
         )
     }
 }

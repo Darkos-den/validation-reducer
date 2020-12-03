@@ -15,7 +15,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 //black-box testing
-//todo: add tests
 class ValidationReducerTest {
 
     data class TestState(
@@ -35,7 +34,28 @@ class ValidationReducerTest {
             mapperTo = { _, _ ->
                 TestState("", false)
             },
-            errorEffect = null
+            errorEffectBuilder = null
+        )
+    }
+
+    private fun createMappedReducer(): ValidationReducer<TestState> {
+        return ValidationReducer(
+            mapperFrom = {
+                ValidationState(mapOf(
+                    emailId to Field(
+                        id = emailId,
+                        type = ValidationFieldType.Email,
+                        value = it.email
+                    )
+                ))
+            },
+            mapperTo = { old, new ->
+                TestState(
+                    old.email,
+                    new.fields[emailId]?.status == FieldValidationStatus.VALID
+                )
+            },
+            errorEffectBuilder = null
         )
     }
 
@@ -47,7 +67,7 @@ class ValidationReducerTest {
             mapperTo = { _, _ ->
                 TestState("", false)
             },
-            errorEffect = effect
+            errorEffectBuilder = { effect }
         )
     }
 
@@ -61,6 +81,10 @@ class ValidationReducerTest {
                 )
             )
         )
+    }
+
+    private fun createDefaultState(): TestState {
+        return TestState("email", true)
     }
 
     @Test
@@ -126,5 +150,16 @@ class ValidationReducerTest {
         val result = reducer.update(state, ValidationMessage.Error(emptyList()))
 
         assertEquals(CustomErrorEffect::class, result.effect::class)
+    }
+
+    @Test
+    fun checkMapping(){
+        val reducer = createMappedReducer()
+        val state = createDefaultState()
+
+        val result = reducer.callUpdate(state, ValidationMessage.Triggered)
+
+        assertEquals(ValidationEffect.Validate::class, result.effect::class)
+        assertEquals(state, result.state)
     }
 }

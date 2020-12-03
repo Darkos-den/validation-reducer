@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    implementation("com.darkosinc.MVU:core-android:0.0.5")
+    implementation("com.darkosinc.MVU:core-android:0.0.6")
     implementation("com.darkosinc.validation:api-android:0.0.2")
 }
 
@@ -63,7 +63,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-                implementation("com.darkosinc.MVU:core:0.0.5")
+                implementation("com.darkosinc.MVU:core:0.0.6")
                 implementation("com.darkosinc.validation:api:0.0.2")
             }
         }
@@ -72,7 +72,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
 
-                implementation("com.darkosinc.MVU:core:0.0.5")
+                implementation("com.darkosinc.MVU:core:0.0.6")
                 implementation("com.darkosinc.validation:api:0.0.2")
             }
         }
@@ -80,7 +80,7 @@ kotlin {
         val iosMain by getting
         val iosArm64Main by getting {
             dependencies {
-                implementation("com.darkosinc.MVU:core-iosArm64:0.0.5")
+                implementation("com.darkosinc.MVU:core-iosArm64:0.0.6")
                 implementation("com.darkosinc.validation:api-iosArm64:0.0.2")
             }
         }
@@ -89,7 +89,7 @@ kotlin {
         }
         val iosX64Main by getting {
             dependencies {
-                implementation("com.darkosinc.MVU:core-iosX64:0.0.5")
+                implementation("com.darkosinc.MVU:core-iosX64:0.0.6")
                 implementation("com.darkosinc.validation:api-iosX64:0.0.2")
             }
         }
