@@ -47,6 +47,9 @@ android {
 dependencies {
     implementation("com.darkosinc.MVU:core-android:0.0.6")
     implementation("com.darkosinc.validation:api-android:0.0.2")
+
+    testImplementation(platform("org.junit:junit-bom:5.7.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 kotlin {
@@ -80,8 +83,6 @@ kotlin {
         val androidMain by getting
         val androidTest by getting {
             dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.1")
             }
         }
         val iosMain by getting
@@ -118,6 +119,10 @@ afterEvaluate {
                 }
             }
         }
+}
+
+tasks.withType(Test::class.java) {
+    useJUnitPlatform()
 }
 
 fun getLocalProperties(): Properties {
