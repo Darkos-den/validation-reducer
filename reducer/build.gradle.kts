@@ -13,7 +13,7 @@ val repository = "validation"
 
 val artifactName = "reducer"
 val artifactGroup = "com.$organization.$repository"
-val artifactVersion = "0.0.1"
+val artifactVersion = "0.0.2"
 
 group = artifactGroup
 version = artifactVersion

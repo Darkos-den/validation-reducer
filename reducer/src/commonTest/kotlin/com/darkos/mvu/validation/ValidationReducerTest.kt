@@ -1,6 +1,5 @@
 package com.darkos.mvu.validation
 
-import com.darkos.mvu.model.ComponentInitialized
 import com.darkos.mvu.model.Effect
 import com.darkos.mvu.model.MVUState
 import com.darkos.mvu.model.None
@@ -12,154 +11,232 @@ import com.darkos.mvu.validation.model.mvu.ValidationEffect
 import com.darkos.mvu.validation.model.mvu.ValidationMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 //black-box testing
-class ValidationReducerTest {
+open class ValidationReducerTest {
 
     data class TestState(
         val email: String,
         val emailValid: Boolean
     ): MVUState()
 
-    class CustomErrorEffect: Effect()
+    class CustomEffect: Effect()
 
-    private val emailId: Long = 1
+    protected val emailId: Long = 1
 
-    private fun createEmptyReducer(): ValidationReducer<TestState> {
-        return ValidationReducer(
-            mapperFrom = {
-                ValidationState(emptyMap())
-            },
-            mapperTo = { _, _ ->
-                TestState("", false)
-            },
-            errorEffectBuilder = null
-        )
-    }
-
-    private fun createMappedReducer(): ValidationReducer<TestState> {
-        return ValidationReducer(
-            mapperFrom = {
-                ValidationState(mapOf(
-                    emailId to Field(
-                        id = emailId,
-                        type = ValidationFieldType.Email,
-                        value = it.email
+    protected fun createDefaultReducer() = ValidationReducer<TestState> {
+        mapState {
+            fromValidationState { testState, validationState ->
+                testState.copy(emailValid = validationState.fields[emailId]?.status == FieldValidationStatus.VALID)
+            }
+            toValidationState {
+                ValidationState(
+                    mapOf(
+                        emailId to Field(
+                            id = emailId,
+                            value = it.email,
+                            type = ValidationFieldType.Email
+                        )
                     )
-                ))
-            },
-            mapperTo = { old, new ->
-                TestState(
-                    old.email,
-                    new.fields[emailId]?.status == FieldValidationStatus.VALID
                 )
-            },
-            errorEffectBuilder = null
-        )
-    }
-
-    private fun createReducerWithCustomErrorEffect(effect: Effect): ValidationReducer<TestState> {
-        return ValidationReducer(
-            mapperFrom = {
-                ValidationState(emptyMap())
-            },
-            mapperTo = { _, _ ->
-                TestState("", false)
-            },
-            errorEffectBuilder = { effect }
-        )
-    }
-
-    private fun createDefaultValidationState(): ValidationState {
-        return ValidationState(
-            fields = mapOf(
-                emailId to Field(
-                    id = emailId,
-                    type = ValidationFieldType.Email,
-                    value = "email"
-                )
-            )
-        )
-    }
-
-    private fun createDefaultState(): TestState {
-        return TestState("email", true)
-    }
-
-    @Test
-    fun checkTrigger(){
-        val reducer = createEmptyReducer()
-        val state = createDefaultValidationState()
-
-        val result = reducer.update(state, ValidationMessage.Triggered)
-
-        assertEquals(ValidationEffect.Validate::class, result.effect::class)
-        assertEquals(state, result.state)
-        assertEquals(
-            state.fields.values.toList(),
-            (result.effect as ValidationEffect.Validate).fields
-        )
-    }
-
-    @Test
-    fun checkOtherMessage(){
-        val reducer = createEmptyReducer()
-        val state = createDefaultValidationState()
-
-        assertFailsWith(IllegalArgumentException::class) {
-            reducer.update(state, ComponentInitialized)
+            }
         }
     }
 
-    @Test
-    fun checkErrorMessage(){
-        val reducer = createEmptyReducer()
-        val state = createDefaultValidationState()
+    protected fun createErrorReducer() = ValidationReducer<TestState> {
+        mapState {
+            fromValidationState { testState, validationState ->
+                testState.copy(emailValid = validationState.fields[emailId]?.status == FieldValidationStatus.VALID)
+            }
+            toValidationState {
+                ValidationState(
+                    mapOf(
+                        emailId to Field(
+                            id = emailId,
+                            value = it.email,
+                            type = ValidationFieldType.Email
+                        )
+                    )
+                )
+            }
+        }
+        whenError {
+            state {
+                it.copy(email = "")
+            }
+            effect { CustomEffect() }
+        }
+    }
 
-        val wrongFields = listOf(emailId)
+    protected fun createSuccessReducer() = ValidationReducer<TestState> {
+        mapState {
+            fromValidationState { testState, validationState ->
+                testState.copy(emailValid = validationState.fields[emailId]?.status == FieldValidationStatus.VALID)
+            }
+            toValidationState {
+                ValidationState(
+                    mapOf(
+                        emailId to Field(
+                            id = emailId,
+                            value = it.email,
+                            type = ValidationFieldType.Email
+                        )
+                    )
+                )
+            }
+        }
+        whenSuccess {
+            state {
+                it.copy(email = "")
+            }
+            effect { CustomEffect() }
+        }
+    }
 
-        val result = reducer.update(state, ValidationMessage.Error(wrongFields))
+    protected fun createDefaultState() = TestState(
+        email = "email",
+        emailValid = true
+    )
 
-        assertEquals(None::class, result.effect::class)
-        assertEquals(
-            FieldValidationStatus.INVALID,
-            (result.state.fields[emailId] ?: error("field is null")).status
+    protected fun createDefaultValidationState() = ValidationState(
+        fields = mapOf(
+            emailId to Field(
+                id = emailId,
+                value = "email",
+                status = FieldValidationStatus.VALID,
+                type = ValidationFieldType.Email
+            )
         )
+    )
+
+    class CalculateState: ValidationReducerTest(){//todo: move to jvm and make nested
+
+        @Test
+        fun checkCalculateErrorState(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
+
+            val result = reducer.calculateNewState(state, ValidationMessage.Error(listOf(emailId)))
+
+            assertEquals(false, result.emailValid)
+        }
+
+        @Test
+        fun checkCalculateNotErrorState(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
+
+            val result = reducer.calculateNewState(state, ValidationMessage.Error(emptyList()))
+
+            assertEquals(true, result.emailValid)
+        }
     }
 
-    @Test
-    fun checkEmptyError(){
-        val reducer = createEmptyReducer()
-        val state = createDefaultValidationState()
+    class BuildErrorCmd: ValidationReducerTest(){
 
-        val result = reducer.update(state, ValidationMessage.Error(emptyList()))
+        @Test
+        fun checkEmptyErrorBuilder(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
 
-        assertEquals(None::class, result.effect::class)
-        assertEquals(
-            FieldValidationStatus.VALID,
-            (result.state.fields[emailId] ?: error("field is null")).status
-        )
+            val result = reducer.buildErrorCmdData(state)
+
+            assertEquals(state, result.state)
+            assertEquals(None::class, result.effect::class)
+        }
+
+        @Test
+        fun checkNotEmptyErrorBuilder(){
+            val reducer = createErrorReducer()
+            val state = createDefaultState()
+
+            val result = reducer.buildErrorCmdData(state)
+
+            assertEquals("", result.state.email)
+            assertEquals(state.emailValid, result.state.emailValid)
+            assertEquals(CustomEffect::class, result.effect::class)
+        }
     }
 
-    @Test
-    fun checkCustomErrorEffect(){
-        val reducer = createReducerWithCustomErrorEffect(CustomErrorEffect())
-        val state = createDefaultValidationState()
+    class Success: ValidationReducerTest(){
 
-        val result = reducer.update(state, ValidationMessage.Error(emptyList()))
+        @Test
+        fun checkEmptyBuilder(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
 
-        assertEquals(CustomErrorEffect::class, result.effect::class)
+            val result = reducer.update(state, ValidationMessage.Success)
+
+            assertEquals(state, result.state)
+            assertEquals(None::class, result.effect::class)
+        }
+
+        @Test
+        fun checkNotEmptyBuilder(){
+            val reducer = createSuccessReducer()
+            val state = createDefaultState()
+
+            val result = reducer.update(state, ValidationMessage.Success)
+
+            assertEquals("", result.state.email)
+            assertEquals(state.emailValid, result.state.emailValid)
+            assertEquals(CustomEffect::class, result.effect::class)
+        }
     }
 
-    @Test
-    fun checkMapping(){
-        val reducer = createMappedReducer()
-        val state = createDefaultState()
+    class Error: ValidationReducerTest(){
 
-        val result = reducer.callUpdate(state, ValidationMessage.Triggered)
+        @Test
+        fun checkEmptyErrorBuilder(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
 
-        assertEquals(ValidationEffect.Validate::class, result.effect::class)
-        assertEquals(state, result.state)
+            val result = reducer.update(state, ValidationMessage.Error(listOf(emailId)))
+
+            assertEquals(state.email, result.state.email)
+            assertEquals(false, result.state.emailValid)
+            assertEquals(None::class, result.effect::class)
+        }
+
+        @Test
+        fun checkNotEmptyErrorBuilder(){
+            val reducer = createErrorReducer()
+            val state = createDefaultState()
+
+            val result = reducer.update(state, ValidationMessage.Error(listOf(emailId)))
+
+            assertEquals("", result.state.email)
+            assertEquals(false, result.state.emailValid)
+            assertEquals(CustomEffect::class, result.effect::class)
+        }
+    }
+
+    class Other: ValidationReducerTest(){
+        @Test
+        fun checkTrigger(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultState()
+
+            val result = reducer.update(state, ValidationMessage.Triggered)
+
+            assertEquals(state, result.state)
+            assertEquals(ValidationEffect.Validate::class, result.effect::class)
+            assertTrue {
+                (result.effect as ValidationEffect.Validate).fields.firstOrNull {
+                    it.id == emailId
+                }?.value == state.email
+            }
+        }
+
+        @Test
+        fun checkUpdateFields(){
+            val reducer = createDefaultReducer()
+            val state = createDefaultValidationState()
+
+            val result = reducer.updateWrongFields(state, listOf(emailId))
+
+            assertEquals(FieldValidationStatus.INVALID, result.fields[emailId]?.status)
+        }
     }
 }

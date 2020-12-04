@@ -1,6 +1,7 @@
 package com.darkos.mvu.validation
 
 import com.darkos.mvu.model.*
+import com.darkos.mvu.validation.common.MapperContext
 import com.darkos.mvu.validation.common.ValidationCmdBuilder
 import com.darkos.mvu.validation.model.Field
 import com.darkos.mvu.validation.model.FieldValidationStatus
@@ -44,14 +45,14 @@ class ValidationReducer<T : MVUState> internal constructor(
         return mapperFrom(this).fields.values.toList()
     }
 
-    private fun buildErrorCmdData(state: T): StateCmdData<T>{
+    internal fun buildErrorCmdData(state: T): StateCmdData<T>{
         return errorCmdBuilder?.build(state) ?: StateCmdData(
                 state = state,
                 effect = None
         )
     }
 
-    private fun calculateNewState(state: T, message: ValidationMessage.Error): T {
+    internal fun calculateNewState(state: T, message: ValidationMessage.Error): T {
         return mapperTo(
                 state,
                 updateWrongFields(
@@ -61,7 +62,7 @@ class ValidationReducer<T : MVUState> internal constructor(
         )
     }
 
-    private fun updateWrongFields(state: ValidationState, wrongFields: List<Long>): ValidationState{
+    internal fun updateWrongFields(state: ValidationState, wrongFields: List<Long>): ValidationState{
         return HashMap(state.fields).also { map ->
             wrongFields.forEach { wrongId ->
                 map[wrongId]?.let {
@@ -70,19 +71,6 @@ class ValidationReducer<T : MVUState> internal constructor(
             }
         }.let {
             ValidationState(it)
-        }
-    }
-
-    class MapperContext<T: MVUState>{
-        internal var mapperFrom: ((T)->ValidationState)? = null
-        internal var mapperTo: ((T, ValidationState) -> T)? = null
-
-        fun toValidationState(block: (T)->ValidationState){
-            mapperFrom = block
-        }
-
-        fun fromValidationState(block: (T, ValidationState) -> T) {
-            mapperTo = block
         }
     }
 
