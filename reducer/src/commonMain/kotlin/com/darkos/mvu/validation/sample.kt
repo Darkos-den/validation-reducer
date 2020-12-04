@@ -22,29 +22,39 @@ import com.darkos.mvu.validation.model.mvu.ValidationMessage
 //        private val validation = ValidationReducer<State> {
 //            val emailId = 1L
 //
-//            errorEffect { None }
-//
-//            registerMapperTo { state, validationState ->
-//                state.copy(
-//                    emailValid = validationState.fields[emailId]?.status == FieldValidationStatus.VALID
-//                )
+//            whenError {
+//                effect { None }
 //            }
-//            registerMapperFrom {
-//                mapOf(
-//                    emailId to Field(
-//                        id = emailId,
-//                        type = ValidationFieldType.Email,
-//                        value = it.email
+//
+//            whenSuccess {
+//                state {
+//                    it.copy(email = "")
+//                }
+//            }
+//
+//            mapState {
+//                toValidationState {
+//                    mapOf(
+//                        emailId to Field(
+//                            id = emailId,
+//                            type = ValidationFieldType.Email,
+//                            value = it.email
+//                        )
+//                    ).let {
+//                        ValidationState(it)
+//                    }
+//                }
+//                fromValidationState { state, validationState ->
+//                    state.copy(
+//                        emailValid = validationState.fields[emailId]?.status == FieldValidationStatus.VALID
 //                    )
-//                ).let {
-//                    ValidationState(it)
 //                }
 //            }
 //        }
 //
 //        override fun update(state: State, message: Message): StateCmdData<State> {
 //            return when(message){
-//                is SubmitClick -> validation.callUpdate(state, ValidationMessage.Triggered)
+//                is SubmitClick -> validation.update(state, ValidationMessage.Triggered)
 //                else -> state.none()
 //            }
 //        }
